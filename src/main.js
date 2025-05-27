@@ -11,7 +11,7 @@ document.head.appendChild(favicon);
 document.querySelector('#app').innerHTML = `
   <div>
     <img src="${uvdataLogo}" alt="UVdata logo" style="height:70px; margin-bottom:0.5em; display:block; margin-left:auto; margin-right:auto;" />
-    <h1 style="color:#003E78; text-align:center;">Daglig Standup Deltager Vælger</h1>
+    <h1 style="color:#003E78; text-align:center;">Daily Standup Deltager Vælger</h1>
     <div class="card" style="margin-bottom:1.5em;">
       <button id="startBtn" type="button" style="background:#003E78; color:white;">Indlæs deltagere</button>
       <div style="margin-top:0.7em; color:#4F463D; font-size:0.95em;">Navne indlæses fra en JSON-fil og rækkefølgen blandes for retfærdighed. Du kan nulstille og blande igen når som helst.</div>
