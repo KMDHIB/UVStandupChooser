@@ -5,19 +5,18 @@ import { setupCounter } from './counter.js'
 
 document.querySelector('#app').innerHTML = `
   <div>
-    <h1 style="color:#646cff;">Daily Scrum Person Sequence Selector</h1>
+    <h1 style="color:#003E78;">Daglig Standup Deltager Vælger</h1>
     <div class="card" style="margin-bottom:1.5em;">
-      <input id="namesInput" type="text" placeholder="Enter names separated by commas (e.g. Alice, Bob, Carol)" style="width: 80%; padding: 0.7em; font-size:1.1em; border:1.5px solid #646cff; border-radius:6px;" />
-      <button id="startBtn" type="button" style="margin-left:0.5em; background:#646cff; color:white;">Start Standup</button>
-      <div style="margin-top:0.7em; color:#888; font-size:0.95em;">Names will be shuffled for fairness. You can reset and reshuffle anytime.</div>
+      <button id="startBtn" type="button" style="background:#003E78; color:white;">Indlæs deltagere</button>
+      <div style="margin-top:0.7em; color:#4F463D; font-size:0.95em;">Navne indlæses fra en JSON-fil og rækkefølgen blandes for retfærdighed. Du kan nulstille og blande igen når som helst.</div>
     </div>
-    <div class="card" id="standupArea" style="display:none; background:#f9f9f9; color:#213547; box-shadow:0 2px 12px #646cff22;">
+    <div class="card" id="standupArea" style="display:none; background:#B4E1F9; color:#003E78; box-shadow:0 2px 12px #83B8E522;">
       <h2 id="currentPerson" style="font-size:2.2em; margin-bottom:0.2em;"></h2>
       <div id="remaining" style="font-size:1.1em; margin-bottom:1em;"></div>
-      <button id="nextBtn" type="button" style="background:#535bf2; color:white; margin-right:0.5em;">Next Person</button>
-      <button id="resetBtn" type="button" style="background:#e4572e; color:white;">Reset</button>
-      <div id="progressBar" style="margin-top:1.2em; height:10px; background:#e0e0e0; border-radius:5px; overflow:hidden;"><div id="progressFill" style="height:100%; width:0; background:#646cff; transition:width 0.4s;"></div></div>
-      <div id="allNames" style="margin-top:1em; font-size:0.95em; color:#888;"></div>
+      <button id="nextBtn" type="button" style="background:#83B8E5; color:white; margin-right:0.5em;">Næste person</button>
+      <button id="resetBtn" type="button" style="background:#4F463D; color:white;">Nulstil</button>
+      <div id="progressBar" style="margin-top:1.2em; height:10px; background:#e0e0e0; border-radius:5px; overflow:hidden;"><div id="progressFill" style="height:100%; width:0; background:#003E78; transition:width 0.4s;"></div></div>
+      <div id="allNames" style="margin-top:1em; font-size:0.95em; color:#4F463D;"></div>
     </div>
   </div>
 `
@@ -32,7 +31,6 @@ function shuffle(array) {
   }
 }
 
-const namesInput = document.getElementById('namesInput');
 const startBtn = document.getElementById('startBtn');
 const standupArea = document.getElementById('standupArea');
 const currentPerson = document.getElementById('currentPerson');
@@ -50,24 +48,31 @@ function updateStandupDisplay() {
     allNames.textContent = '';
     return;
   }
-  currentPerson.textContent = `Current: ${sequence[currentIndex]}`;
-  const next = currentIndex + 1 < sequence.length ? sequence[currentIndex + 1] : 'None';
-  remaining.textContent = `Next: ${next}`;
+  currentPerson.textContent = `Nuværende: ${sequence[currentIndex]}`;
+  const next = currentIndex + 1 < sequence.length ? sequence[currentIndex + 1] : 'Ingen';
+  remaining.textContent = `Næste: ${next}`;
   progressFill.style.width = `${((currentIndex+1)/sequence.length)*100}%`;
-  allNames.innerHTML = sequence.map((n, i) => i === currentIndex ? `<b style='color:#646cff;'>${n}</b>` : n).join(' &rarr; ');
+  allNames.innerHTML = sequence.map((n, i) => i === currentIndex ? `<b style='color:#003E78;'>${n}</b>` : n).join(' &rarr; ');
+}
+
+async function loadParticipants() {
+  try {
+    const res = await fetch('/participants.json');
+    if (!res.ok) throw new Error('Kunne ikke indlæse participants.json');
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error('participants.json skal være et array af navne');
+    sequence = [...data];
+    shuffle(sequence);
+    currentIndex = 0;
+    standupArea.style.display = '';
+    updateStandupDisplay();
+  } catch (err) {
+    alert('Fejl ved indlæsning af deltagere: ' + err.message);
+  }
 }
 
 startBtn.onclick = () => {
-  const names = namesInput.value.split(',').map(n => n.trim()).filter(n => n);
-  if (names.length === 0) {
-    alert('Please enter at least one name.');
-    return;
-  }
-  sequence = [...names];
-  shuffle(sequence);
-  currentIndex = 0;
-  standupArea.style.display = '';
-  updateStandupDisplay();
+  loadParticipants();
 };
 
 nextBtn.onclick = () => {
@@ -75,14 +80,13 @@ nextBtn.onclick = () => {
     currentIndex++;
     updateStandupDisplay();
   } else {
-    alert('Standup complete!');
+    alert('Standup færdig!');
     standupArea.style.display = 'none';
   }
 };
 
 resetBtn.onclick = () => {
   standupArea.style.display = 'none';
-  namesInput.value = '';
   sequence = [];
   currentIndex = 0;
 };
