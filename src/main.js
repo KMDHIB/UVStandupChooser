@@ -1,11 +1,17 @@
 import './style.css'
-import javascriptLogo from './javascript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.js'
+import uvdataLogo from '../public/uvdata.svg'
+
+// Sæt favicon dynamisk
+const favicon = document.createElement('link');
+favicon.rel = 'icon';
+favicon.type = 'image/svg+xml';
+favicon.href = uvdataLogo;
+document.head.appendChild(favicon);
 
 document.querySelector('#app').innerHTML = `
   <div>
-    <h1 style="color:#003E78;">Daglig Standup Deltager Vælger</h1>
+    <img src="${uvdataLogo}" alt="UVdata logo" style="height:70px; margin-bottom:0.5em; display:block; margin-left:auto; margin-right:auto;" />
+    <h1 style="color:#003E78; text-align:center;">Daglig Standup Deltager Vælger</h1>
     <div class="card" style="margin-bottom:1.5em;">
       <button id="startBtn" type="button" style="background:#003E78; color:white;">Indlæs deltagere</button>
       <div style="margin-top:0.7em; color:#4F463D; font-size:0.95em;">Navne indlæses fra en JSON-fil og rækkefølgen blandes for retfærdighed. Du kan nulstille og blande igen når som helst.</div>
@@ -60,8 +66,15 @@ async function loadParticipants() {
     const res = await fetch('/participants.json');
     if (!res.ok) throw new Error('Kunne ikke indlæse participants.json');
     const data = await res.json();
-    if (!Array.isArray(data)) throw new Error('participants.json skal være et array af navne');
-    sequence = [...data];
+    if (!Array.isArray(data)) throw new Error('participants.json skal være et array af deltagere');
+    // Find dagens ugedag på engelsk
+    const weekdays = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+    const today = new Date();
+    const day = weekdays[today.getDay()];
+    // Filtrer deltagere der ikke skal med i dag
+    const active = data.filter(p => !(p.exclude && p.exclude.includes(day)));
+    if (active.length === 0) throw new Error('Ingen deltagere til stede i dag.');
+    sequence = active.map(p => p.name);
     shuffle(sequence);
     currentIndex = 0;
     standupArea.style.display = '';

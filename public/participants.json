@@ -1,6 +1,38 @@
 [
-"Jesper",
-"Anders",
-"Steffen",
-"Bjarne"
+    {
+        "name": "Anders",
+        "exclude": []
+    },
+    {
+        "name": "Bjarne",
+        "exclude": []
+    },
+    {
+        "name": "Caspar",
+        "exclude": ["monday", "tuesday", "wednesday", "thursday", "friday"]
+    },
+    {
+        "name": "Charlotte",
+        "exclude": []
+    },
+    {
+        "name": "Claus",
+        "exclude": []
+    },
+    {
+        "name": "Henrik",
+        "exclude": []
+    },
+    {
+        "name": "Jens",
+        "exclude": []
+    },
+    {
+        "name": "Jesper",
+        "exclude": ["wednesday", "thursday"]
+    },
+    {
+        "name": "Steffen",
+        "exclude": []
+    }
 ]
