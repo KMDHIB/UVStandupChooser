@@ -9,7 +9,7 @@
     },
     {
         "name": "Caspar",
-        "exclude": ["monday", "tuesday", "wednesday", "thursday", "friday"]
+        "exclude": ["tuesday", "wednesday", "thursday", "friday"]
     },
     {
         "name": "Charlotte",
