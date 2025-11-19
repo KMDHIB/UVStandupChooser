@@ -63,7 +63,7 @@ function updateStandupDisplay() {
 
 async function loadParticipants() {
   try {
-    const res = await fetch('/participants.json');
+    const res = await fetch(import.meta.env.BASE_URL + 'participants.json');
     if (!res.ok) throw new Error('Kunne ikke indlæse participants.json');
     const data = await res.json();
     if (!Array.isArray(data)) throw new Error('participants.json skal være et array af deltagere');
