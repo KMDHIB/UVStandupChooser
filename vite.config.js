@@ -6,7 +6,7 @@ export default defineConfig({
   base: '/UVStandupChooser/',
   plugins: [
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       includeAssets: ['uvdata.svg', 'participants.json'],
       manifest: {
         name: 'UVdata Daily Standup',
@@ -15,7 +15,8 @@ export default defineConfig({
         theme_color: '#003E78',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/UVStandupChooser/',
+        start_url: './',
+        scope: './',
         icons: [
           {
             src: 'uvdata.svg',

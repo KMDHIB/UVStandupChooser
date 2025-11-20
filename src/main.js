@@ -2,7 +2,49 @@ import './style.css'
 import uvdataLogo from '../public/uvdata.svg'
 import { registerSW } from 'virtual:pwa-register'
 
-// PWA Update logic
+// PWA Update logic with install prompt
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Prevent the mini-infobar from appearing on mobile
+  e.preventDefault();
+  // Stash the event so it can be triggered later
+  deferredPrompt = e;
+  // Show install button
+  showInstallPromotion();
+});
+
+function showInstallPromotion() {
+  const installBanner = document.createElement('div');
+  installBanner.id = 'install-banner';
+  installBanner.innerHTML = `
+    <div style="background: #003E78; color: white; padding: 16px; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000; display: flex; gap: 16px; align-items: center; max-width: 90%; flex-wrap: wrap; justify-content: center;">
+      <span>📱 Installer app på din enhed</span>
+      <button id="install-btn" style="background: white; color: #003E78; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+        Installer
+      </button>
+      <button id="install-dismiss" style="background: transparent; color: white; border: 1px solid white; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+        Nej tak
+      </button>
+    </div>
+  `;
+  document.body.appendChild(installBanner);
+
+  document.getElementById('install-btn').addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User response to the install prompt: ${outcome}`);
+      deferredPrompt = null;
+    }
+    installBanner.remove();
+  });
+
+  document.getElementById('install-dismiss').addEventListener('click', () => {
+    installBanner.remove();
+  });
+}
+
 const updateSW = registerSW({
   onNeedRefresh() {
     showUpdateNotification();
