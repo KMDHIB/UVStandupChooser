@@ -83,7 +83,7 @@ document.querySelector('#app').innerHTML = `
   <div>
     <img src="${uvdataLogo}" alt="UVdata logo" style="height:70px; margin-bottom:0.5em; display:block; margin-left:auto; margin-right:auto;" />
     <h1 style="color:#003E78; text-align:center;">Daily Standup Deltager Vælger</h1>
-    <div class="card" style="margin-bottom:1.5em;">
+    <div class="card" id="startArea" style="margin-bottom:1.5em;">
       <button id="startBtn" type="button" style="background:#003E78; color:white;">Indlæs deltagere</button>
       <div style="margin-top:0.7em; color:#4F463D; font-size:0.95em;">Navne indlæses fra en JSON-fil og rækkefølgen blandes for retfærdighed. Du kan nulstille og blande igen når som helst.</div>
     </div>
@@ -114,6 +114,7 @@ function shuffle(array) {
 }
 
 const startBtn = document.getElementById('startBtn');
+const startArea = document.getElementById('startArea');
 const standupArea = document.getElementById('standupArea');
 const completedArea = document.getElementById('completedArea');
 const currentPerson = document.getElementById('currentPerson');
@@ -163,6 +164,7 @@ async function loadParticipants() {
     sequence = active.map(p => p.name);
     shuffle(sequence);
     currentIndex = 0;
+    startArea.style.display = 'none';
     standupArea.style.display = '';
     completedArea.style.display = 'none';
     updateStandupDisplay();
@@ -192,6 +194,7 @@ nextBtn.onclick = () => {
 };
 
 resetBtn.onclick = () => {
+  startArea.style.display = '';
   standupArea.style.display = 'none';
   completedArea.style.display = 'none';
   sequence = [];
