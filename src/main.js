@@ -95,6 +95,11 @@ document.querySelector('#app').innerHTML = `
       <div id="progressBar" style="margin-top:1.2em; height:10px; background:#e0e0e0; border-radius:5px; overflow:hidden;"><div id="progressFill" style="height:100%; width:0; background:#003E78; transition:width 0.4s;"></div></div>
       <div id="allNames" style="margin-top:1em; font-size:0.95em; color:#4F463D;"></div>
     </div>
+    <div class="card" id="completedArea" style="display:none; background:#4CAF50; color:white; text-align:center; box-shadow:0 4px 12px rgba(76,175,80,0.3);">
+      <h2 style="font-size:2em; margin-bottom:0.5em;">🎉 Standup færdig!</h2>
+      <p style="font-size:1.1em; margin-bottom:1.5em;">Alle har haft deres tur</p>
+      <button id="restartBtn" type="button" style="background:white; color:#4CAF50; font-weight:bold; padding:12px 24px;">Start forfra</button>
+    </div>
   </div>
 `
 
@@ -110,9 +115,11 @@ function shuffle(array) {
 
 const startBtn = document.getElementById('startBtn');
 const standupArea = document.getElementById('standupArea');
+const completedArea = document.getElementById('completedArea');
 const currentPerson = document.getElementById('currentPerson');
 const nextBtn = document.getElementById('nextBtn');
 const resetBtn = document.getElementById('resetBtn');
+const restartBtn = document.getElementById('restartBtn');
 const remaining = document.getElementById('remaining');
 const progressFill = document.getElementById('progressFill');
 const allNames = document.getElementById('allNames');
@@ -125,6 +132,14 @@ function updateStandupDisplay() {
     allNames.textContent = '';
     return;
   }
+  
+  // Tjek om vi er færdige
+  if (currentIndex >= sequence.length) {
+    standupArea.style.display = 'none';
+    completedArea.style.display = '';
+    return;
+  }
+  
   currentPerson.textContent = `Nuværende: ${sequence[currentIndex]}`;
   const next = currentIndex + 1 < sequence.length ? sequence[currentIndex + 1] : 'Ingen';
   remaining.textContent = `Næste: ${next}`;
@@ -149,10 +164,22 @@ async function loadParticipants() {
     shuffle(sequence);
     currentIndex = 0;
     standupArea.style.display = '';
+    completedArea.style.display = 'none';
     updateStandupDisplay();
   } catch (err) {
-    alert('Fejl ved indlæsning af deltagere: ' + err.message);
+    showError(err.message);
   }
+}
+
+function showError(message) {
+  const errorDiv = document.createElement('div');
+  errorDiv.innerHTML = `
+    <div style="background: #f44336; color: white; padding: 16px; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000; max-width: 90%;">
+      <strong>⚠️ Fejl:</strong> ${message}
+    </div>
+  `;
+  document.body.appendChild(errorDiv);
+  setTimeout(() => errorDiv.remove(), 5000);
 }
 
 startBtn.onclick = () => {
@@ -160,17 +187,18 @@ startBtn.onclick = () => {
 };
 
 nextBtn.onclick = () => {
-  if (currentIndex + 1 < sequence.length) {
-    currentIndex++;
-    updateStandupDisplay();
-  } else {
-    alert('Standup færdig!');
-    standupArea.style.display = 'none';
-  }
+  currentIndex++;
+  updateStandupDisplay();
 };
 
 resetBtn.onclick = () => {
   standupArea.style.display = 'none';
+  completedArea.style.display = 'none';
   sequence = [];
   currentIndex = 0;
+};
+
+restartBtn.onclick = () => {
+  completedArea.style.display = 'none';
+  loadParticipants();
 };
