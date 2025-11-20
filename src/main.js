@@ -1,5 +1,34 @@
 import './style.css'
 import uvdataLogo from '../public/uvdata.svg'
+import { registerSW } from 'virtual:pwa-register'
+
+// PWA Update logic
+const updateSW = registerSW({
+  onNeedRefresh() {
+    showUpdateNotification();
+  },
+  onOfflineReady() {
+    console.log('App klar til offline brug');
+  },
+})
+
+function showUpdateNotification() {
+  const notification = document.createElement('div');
+  notification.id = 'update-notification';
+  notification.innerHTML = `
+    <div style="background: #4CAF50; color: white; padding: 16px; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000; display: flex; gap: 16px; align-items: center; max-width: 90%; flex-wrap: wrap; justify-content: center;">
+      <span>Ny version tilgængelig!</span>
+      <button id="update-btn" style="background: white; color: #4CAF50; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+        Opdater nu
+      </button>
+    </div>
+  `;
+  document.body.appendChild(notification);
+
+  document.getElementById('update-btn').addEventListener('click', () => {
+    updateSW(true);
+  });
+}
 
 // Sæt favicon dynamisk
 const favicon = document.createElement('link');
