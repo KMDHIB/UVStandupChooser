@@ -97,10 +97,21 @@ document.querySelector('#app').innerHTML = `
     <img src="${uvdataLogo}" alt="UVdata logo" style="height:70px; margin-bottom:0.5em; display:block; margin-left:auto; margin-right:auto;" />
     <h1 style="color:#003E78; text-align:center;">Daily Standup Deltager Vælger</h1>
     <div class="card" id="startArea" style="margin-bottom:1.5em;">
+      <div style="margin-bottom:1em;">
+        <label style="display:block; margin-bottom:0.5em; color:#003E78; font-weight:bold;">Total tid (minutter):</label>
+        <input id="totalTime" type="number" value="15" min="1" max="60" style="width:100%; padding:8px; border:2px solid #003E78; border-radius:4px; font-size:1em;" />
+      </div>
+      <div style="margin-bottom:1em;">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+          <input id="autoSwitch" type="checkbox" style="width:20px; height:20px; cursor:pointer;" />
+          <span style="color:#003E78;">Auto-skift til næste person</span>
+        </label>
+      </div>
       <button id="startBtn" type="button" style="background:#003E78; color:white;">Indlæs deltagere</button>
       <div style="margin-top:0.7em; color:#4F463D; font-size:0.95em;">Navne indlæses fra en JSON-fil og rækkefølgen blandes for retfærdighed. Du kan nulstille og blande igen når som helst.</div>
     </div>
     <div class="card" id="standupArea" style="display:none; background:#B4E1F9; color:#003E78; box-shadow:0 2px 12px #83B8E522;">
+      <div id="timerDisplay" style="font-size:3em; font-weight:bold; text-align:center; margin-bottom:0.5em;">0:00</div>
       <h2 id="currentPerson" style="font-size:2.2em; margin-bottom:0.2em;"></h2>
       <div id="remaining" style="font-size:1.1em; margin-bottom:1em;"></div>
       <button id="nextBtn" type="button" style="background:#83B8E5; color:white; margin-right:0.5em;">Næste person</button>
@@ -118,6 +129,10 @@ document.querySelector('#app').innerHTML = `
 
 let sequence = [];
 let currentIndex = 0;
+let timerInterval = null;
+let timeLeft = 0;
+let timePerPerson = 0;
+let autoSwitch = false;
 
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -137,6 +152,56 @@ const restartBtn = document.getElementById('restartBtn');
 const remaining = document.getElementById('remaining');
 const progressFill = document.getElementById('progressFill');
 const allNames = document.getElementById('allNames');
+const timerDisplay = document.getElementById('timerDisplay');
+const totalTimeInput = document.getElementById('totalTime');
+const autoSwitchCheckbox = document.getElementById('autoSwitch');
+
+function formatTime(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+function updateTimer() {
+  timerDisplay.textContent = formatTime(timeLeft);
+  
+  // Skift farve når der er mindre end 10 sekunder tilbage
+  if (timeLeft <= 10 && timeLeft > 0) {
+    timerDisplay.style.color = '#f44336';
+  } else {
+    timerDisplay.style.color = '#003E78';
+  }
+  
+  if (timeLeft <= 0) {
+    stopTimer();
+    if (autoSwitch) {
+      // Auto-skift til næste person
+      currentIndex++;
+      updateStandupDisplay();
+    } else {
+      // Vis notifikation
+      timerDisplay.style.color = '#f44336';
+      timerDisplay.textContent = '⏰ Tid udløbet!';
+    }
+  }
+}
+
+function startTimer() {
+  stopTimer(); // Stop eksisterende timer
+  timeLeft = timePerPerson;
+  updateTimer();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimer();
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
 
 function scrollToElement(element) {
   // Tjek om elementet allerede er synligt i viewport
@@ -160,6 +225,7 @@ function updateStandupDisplay() {
   
   // Tjek om vi er færdige
   if (currentIndex >= sequence.length) {
+    stopTimer();
     standupArea.style.display = 'none';
     completedArea.style.display = '';
     // Scroll til completed area
@@ -172,6 +238,9 @@ function updateStandupDisplay() {
   remaining.textContent = `Næste: ${next}`;
   progressFill.style.width = `${((currentIndex+1)/sequence.length)*100}%`;
   allNames.innerHTML = sequence.map((n, i) => i === currentIndex ? `<b style='color:#003E78;'>${n}</b>` : n).join(' &rarr; ');
+  
+  // Start timer for denne person
+  startTimer();
   
   // Scroll til standup area
   setTimeout(() => scrollToElement(standupArea), 100);
@@ -193,6 +262,12 @@ async function loadParticipants() {
     sequence = active.map(p => p.name);
     shuffle(sequence);
     currentIndex = 0;
+    
+    // Beregn tid per person
+    const totalMinutes = parseInt(totalTimeInput.value) || 15;
+    timePerPerson = Math.floor((totalMinutes * 60) / sequence.length);
+    autoSwitch = autoSwitchCheckbox.checked;
+    
     startArea.style.display = 'none';
     standupArea.style.display = '';
     completedArea.style.display = 'none';
@@ -223,11 +298,13 @@ nextBtn.onclick = () => {
 };
 
 resetBtn.onclick = () => {
+  stopTimer();
   startArea.style.display = '';
   standupArea.style.display = 'none';
   completedArea.style.display = 'none';
   sequence = [];
   currentIndex = 0;
+  timerDisplay.style.color = '#003E78';
 };
 
 restartBtn.onclick = () => {
