@@ -138,6 +138,17 @@ const remaining = document.getElementById('remaining');
 const progressFill = document.getElementById('progressFill');
 const allNames = document.getElementById('allNames');
 
+function scrollToElement(element) {
+  // Tjek om elementet allerede er synligt i viewport
+  const rect = element.getBoundingClientRect();
+  const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+  
+  // Scroll kun hvis ikke synligt
+  if (!isVisible) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
 function updateStandupDisplay() {
   if (sequence.length === 0) {
     currentPerson.textContent = '';
@@ -151,6 +162,8 @@ function updateStandupDisplay() {
   if (currentIndex >= sequence.length) {
     standupArea.style.display = 'none';
     completedArea.style.display = '';
+    // Scroll til completed area
+    setTimeout(() => scrollToElement(completedArea), 100);
     return;
   }
   
@@ -159,6 +172,9 @@ function updateStandupDisplay() {
   remaining.textContent = `Næste: ${next}`;
   progressFill.style.width = `${((currentIndex+1)/sequence.length)*100}%`;
   allNames.innerHTML = sequence.map((n, i) => i === currentIndex ? `<b style='color:#003E78;'>${n}</b>` : n).join(' &rarr; ');
+  
+  // Scroll til standup area
+  setTimeout(() => scrollToElement(standupArea), 100);
 }
 
 async function loadParticipants() {
