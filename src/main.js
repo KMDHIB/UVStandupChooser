@@ -133,7 +133,6 @@ let timerInterval = null;
 let timeLeft = 0;
 let timePerPerson = 0;
 let autoSwitch = false;
-let totalTimeRemaining = 0; // Total tid tilbage for alle deltagere
 
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -189,18 +188,10 @@ function updateTimer() {
 
 function startTimer() {
   stopTimer(); // Stop eksisterende timer
-  
-  // Genberegn tid per person baseret på resterende tid og deltagere
-  const remainingParticipants = sequence.length - currentIndex;
-  if (remainingParticipants > 0) {
-    timePerPerson = Math.floor(totalTimeRemaining / remainingParticipants);
-  }
-  
   timeLeft = timePerPerson;
   updateTimer();
   timerInterval = setInterval(() => {
     timeLeft--;
-    totalTimeRemaining--;
     updateTimer();
   }, 1000);
 }
@@ -209,12 +200,6 @@ function stopTimer() {
   if (timerInterval) {
     clearInterval(timerInterval);
     timerInterval = null;
-  }
-  // Når vi stopper timeren, træk kun den faktisk brugte tid fra total
-  // timeLeft viser hvad der er tilbage, så vi trækker det fra totalTimeRemaining
-  if (timeLeft > 0 && timePerPerson > 0) {
-    const timeUsed = timePerPerson - timeLeft;
-    totalTimeRemaining = totalTimeRemaining + timeLeft; // Tilføj ubrugt tid tilbage
   }
 }
 
@@ -280,8 +265,7 @@ async function loadParticipants() {
     
     // Beregn tid per person
     const totalMinutes = parseInt(totalTimeInput.value) || 15;
-    totalTimeRemaining = totalMinutes * 60; // Total tid i sekunder
-    timePerPerson = Math.floor(totalTimeRemaining / sequence.length);
+    timePerPerson = Math.floor((totalMinutes * 60) / sequence.length);
     autoSwitch = autoSwitchCheckbox.checked;
     
     startArea.style.display = 'none';
@@ -309,7 +293,6 @@ startBtn.onclick = () => {
 };
 
 nextBtn.onclick = () => {
-  stopTimer();
   currentIndex++;
   updateStandupDisplay();
 };
